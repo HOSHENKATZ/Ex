@@ -39,10 +39,10 @@ function renderLocs(locs) {
 
     var strHTML = locs.map(loc => {
         var distance = 'for distance allow location'
-        if (gUserPos){
+        if (gUserPos) {
             distance = utilService.getDistance(loc.geo, gUserPos)
             console.log('distance:' + distance);
-            
+
         }
         const className = (loc.id === selectedLocId) ? 'active' : ''
         return `
@@ -78,7 +78,7 @@ function renderLocs(locs) {
 }
 
 function onRemoveLoc(locId) {
-    if(!confirm('are you sure?')) return
+    if (!confirm('are you sure?')) return
     locService.remove(locId)
         .then(() => {
             flashMsg('Location removed')
@@ -140,7 +140,7 @@ function onPanToUserPos() {
         .then(latLng => {
             mapService.panTo({ ...latLng, zoom: 15 })
             unDisplayLoc()
-           gUserPos = latLng
+            gUserPos = latLng
             loadAndRenderLocs()
             flashMsg(`You are at Latitude: ${latLng.lat} Longitude: ${latLng.lng}`)
         })
@@ -274,6 +274,9 @@ function onSetFilterBy({ txt, minRate }) {
 function renderLocStats() {
     locService.getLocCountByRateMap().then(stats => {
         handleStats(stats, 'loc-stats-rate')
+    })
+    locService.getLocCountByUpdateMap().then(stats => {
+        handleStats(stats, 'loc-stats-updated')
     })
 }
 
