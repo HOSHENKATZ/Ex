@@ -18,6 +18,8 @@ window.app = {
     onSetFilterBy,
 }
 
+let gUserPos = null
+
 function onInit() {
     getFilterByFromQueryParams()
     loadAndRenderLocs()
@@ -36,6 +38,12 @@ function renderLocs(locs) {
     const selectedLocId = getLocIdFromQueryParams()
 
     var strHTML = locs.map(loc => {
+        var distance = 'for distance allow location'
+        if (gUserPos){
+            distance = utilService.getDistance(loc.geo, gUserPos)
+            console.log('distance:' + distance);
+            
+        }
         const className = (loc.id === selectedLocId) ? 'active' : ''
         return `
         <li class="loc ${className}" data-id="${loc.id}">
@@ -44,6 +52,7 @@ function renderLocs(locs) {
                 <span title="${loc.rate} stars">${'★'.repeat(loc.rate)}</span>
             </h4>
             <p class="muted">
+                distance: ${distance} <br>
                 Created: ${utilService.elapsedTime(loc.createdAt)}
                 ${(loc.createdAt !== loc.updatedAt) ?
                 ` | Updated: ${utilService.elapsedTime(loc.updatedAt)}`
@@ -131,6 +140,7 @@ function onPanToUserPos() {
         .then(latLng => {
             mapService.panTo({ ...latLng, zoom: 15 })
             unDisplayLoc()
+           gUserPos = latLng
             loadAndRenderLocs()
             flashMsg(`You are at Latitude: ${latLng.lat} Longitude: ${latLng.lng}`)
         })
