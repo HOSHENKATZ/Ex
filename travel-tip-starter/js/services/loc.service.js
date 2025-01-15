@@ -30,7 +30,8 @@ export const locService = {
     save,
     setFilterBy,
     setSortBy,
-    getLocCountByRateMap
+    getLocCountByRateMap,
+    getLocCountByUpdateMap
 }
 
 function query() {
@@ -83,10 +84,8 @@ function save(loc) {
 }
 
 function setFilterBy(filterBy = {}) {
-    console.log(filterBy)
     if (filterBy.txt !== undefined) gFilterBy.txt = filterBy.txt
     if (filterBy.minRate !== undefined && !isNaN(filterBy.minRate)) gFilterBy.minRate = filterBy.minRate
-    console.log(gFilterBy)
     return gFilterBy
 }
 
@@ -102,6 +101,43 @@ function getLocCountByRateMap() {
             locCountByRateMap.total = locs.length
             return locCountByRateMap
         })
+}
+
+function getLocCountByUpdateMap() {
+    return storageService.query(DB_KEY)
+        .then(locs => {
+            const locCountByUpdatMap = locs.reduce((map, loc) => {
+                const updatedAt = loc.updatedAt
+                if (!updatedAt) {
+                    map.never = (map.never || 0) + 1
+                } else if (isToday(updatedAt)) {
+                    map.today = (map.today || 0) + 1
+                } else if (isPast(updatedAt)) {
+                    map.past = (map.past || 0) + 1
+                }
+
+                return map
+            }, { today: 0, past: 0, never: 0 })
+            locCountByUpdatMap.total = locs.length
+            return locCountByUpdatMap
+        })
+}
+function isToday(updatedAt) {
+    const today = new Date()
+    const updatedDate = new Date(updatedAt)
+
+    return today.getFullYear() === updatedDate.getFullYear() &&
+        today.getMonth() === updatedDate.getMonth() &&
+        today.getDate() === updatedDate.getDate()
+
+}
+
+function isPast(updatedAt) {
+    const today = new Date()
+    const updatedDate = new Date(updatedAt)
+
+    return updatedDate < today
+
 }
 
 function setSortBy(sortBy = {}) {
