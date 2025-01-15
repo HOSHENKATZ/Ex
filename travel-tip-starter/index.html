@@ -28,6 +28,14 @@
     <main>
         <div class="map"></div>
         <div>
+            <dialog class="dialog">
+                <!-- <form class="form" onsubmit="app.onUpdateLoc(event)" > -->
+                    <input class="new-name" type="text" placeholder="Enter name">
+                    <input class="new-rate" type="number" placeholder="Enter rate">
+                    <button class="btn-update" onclick="app.onUpdateLoc(event)">Update</button>
+                    <button class="btn-save" onclick="app.onAddLoc(event)">Save</button>
+                <!-- </form> -->
+            </dialog>
             <section class="locs-container">
                 <section class="loc-filter">
                     <div>

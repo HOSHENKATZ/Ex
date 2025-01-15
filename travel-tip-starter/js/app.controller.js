@@ -8,6 +8,9 @@ window.onload = onInit
 // functions that are called from DOM are defined on a global app object
 window.app = {
     onRemoveLoc,
+    onShowModal,
+    onShowModalForAdd,
+    onAddLoc,
     onUpdateLoc,
     onSelectLoc,
     onPanToUserPos,
@@ -19,14 +22,15 @@ window.app = {
 }
 
 let gUserPos = null
-
+let gCurrId = null
+let gCurrGeo = null
 function onInit() {
     getFilterByFromQueryParams()
     loadAndRenderLocs()
     mapService.initMap()
         .then(() => {
             // onPanToTokyo()
-            mapService.addClickListener(onAddLoc)
+            mapService.addClickListener(onShowModalForAdd)
         })
         .catch(err => {
             console.error('OOPs:', err)
@@ -39,10 +43,10 @@ function renderLocs(locs) {
 
     var strHTML = locs.map(loc => {
         var distance = 'for distance allow location'
-        if (gUserPos){
+        if (gUserPos) {
             distance = utilService.getDistance(loc.geo, gUserPos)
             console.log('distance:' + distance);
-            
+
         }
         const className = (loc.id === selectedLocId) ? 'active' : ''
         return `
@@ -60,7 +64,7 @@ function renderLocs(locs) {
             </p>
             <div class="loc-btns">     
                <button title="Delete" onclick="app.onRemoveLoc('${loc.id}')">🗑️</button>
-               <button title="Edit" onclick="app.onUpdateLoc('${loc.id}')">✏️</button>
+               <button title="Edit" onclick="app.onShowModal('${loc.id}')">✏️</button>
                <button title="Select" onclick="app.onSelectLoc('${loc.id}')">🗺️</button>
             </div>     
         </li>`}).join('')
@@ -78,7 +82,7 @@ function renderLocs(locs) {
 }
 
 function onRemoveLoc(locId) {
-    if(!confirm('are you sure?')) return
+    if (!confirm('are you sure?')) return
     locService.remove(locId)
         .then(() => {
             flashMsg('Location removed')
@@ -104,15 +108,22 @@ function onSearchAddress(ev) {
         })
 }
 
-function onAddLoc(geo) {
-    const locName = prompt('Loc name', geo.address || 'Just a place')
+function onAddLoc(ev) {
+    ev.preventDefault()
+   
+    document.querySelector('.dialog').close()
+   
+    const locName = document.querySelector('.new-name').value
+    console.log(locName)
+    const locRate = document.querySelector('.new-rate').value
+    // console.log(gCurrGeo)
     if (!locName) return
-
+    console.log('hey:');
     const loc = {
         name: locName,
-        rate: +prompt(`Rate (1-5)`, '3'),
-        // time: new Date(Date.now()).toLocaleString(),
-        geo
+        rate: locRate,
+            // time: new Date(Date.now()).toLocaleString(),
+            geo: gCurrGeo
     }
     locService.save(loc)
         .then((savedLoc) => {
@@ -140,7 +151,7 @@ function onPanToUserPos() {
         .then(latLng => {
             mapService.panTo({ ...latLng, zoom: 15 })
             unDisplayLoc()
-           gUserPos = latLng
+            gUserPos = latLng
             loadAndRenderLocs()
             flashMsg(`You are at Latitude: ${latLng.lat} Longitude: ${latLng.lng}`)
         })
@@ -150,10 +161,37 @@ function onPanToUserPos() {
         })
 }
 
-function onUpdateLoc(locId) {
-    locService.getById(locId)
+function onShowModal(id) {
+    console.log('hey from show modal')
+    document.querySelector('.dialog').showModal()
+    document.querySelector('.new-name').style.display = 'none'
+    document.querySelector('.btn-save').style.display = 'none'
+    // document.querySelector('.form').onsubmit = "onUpdateLoc(event)"
+    gCurrId = id
+}
+function onShowModalForAdd(geo) {
+
+    document.querySelector('.dialog').showModal()
+    document.querySelector('.btn-update').style.display = 'none'
+    document.querySelector('.btn-save').style.display = 'block'
+    document.querySelector('.new-name').style.display = 'block'
+
+    // document.querySelector('.form').onsubmit = "onAddLoc(geo,event)"
+
+    gCurrGeo = geo
+
+}
+
+function onUpdateLoc(ev) {
+    ev.preventDefault()
+    document.querySelector('.dialog').close()
+    let input = document.querySelector('.new-rate').value
+    console.dir(document.querySelector('.new-rate'))
+    console.log(input)
+    locService.getById(gCurrId)
         .then(loc => {
-            const rate = prompt('New rate?', loc.rate)
+
+            const rate = input
             if (rate && rate !== loc.rate) {
                 loc.rate = rate
                 locService.save(loc)
