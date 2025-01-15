@@ -4,7 +4,7 @@
 
 ## Description
 TravelTip is an app that keeps a list of favorite locations
-
+- modifyed and improved by Bar and Hoshen with hard work and countless hours
 ## Main Features
 - The app allows the user to keep and manage locations
 - The user can also search for an address and pan the map to that point
